@@ -1,11 +1,15 @@
 #include <boost/bind.hpp>
-#include <ros/ros.h>
-#include <turtlesim/Pose.h>
-#include <geometry_msgs/Twist.h>
-#include <std_srvs/Empty.h>
+#include <cmath>
+#include <rclcpp/rclcpp.hpp>
+#include <turtlesim/msg/pose.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <std_srvs/srv/empty.hpp>
 
-turtlesim::PoseConstPtr g_pose;
-turtlesim::Pose g_goal;
+using namespace std::chrono_literals;
+
+turtlesim::msg::Pose::SharedPtr g_pose = NULL;
+auto g_goal = std::make_shared<turtlesim::msg::Pose>();
+rclcpp::Node::SharedPtr nh;
 
 enum State
 {
@@ -21,14 +25,14 @@ bool g_first_goal_set = false;
 
 #define PI 3.141592
 
-void poseCallback(const turtlesim::PoseConstPtr& pose)
+void poseCallback(turtlesim::msg::Pose::SharedPtr pose)
 {
   g_pose = pose;
 }
 
 bool hasReachedGoal()
 {
-  return fabsf(g_pose->x - g_goal.x) < 0.1 && fabsf(g_pose->y - g_goal.y) < 0.1 && fabsf(g_pose->theta - g_goal.theta) < 0.01;
+  return fabsf(g_pose->x - g_goal->x) < 0.1 && fabsf(g_pose->y - g_goal->y) < 0.1 && fabsf(g_pose->theta - g_goal->theta) < 0.01;
 }
 
 bool hasStopped()
@@ -38,28 +42,28 @@ bool hasStopped()
 
 void printGoal()
 {
-  ROS_INFO("New goal [%f %f, %f]", g_goal.x, g_goal.y, g_goal.theta);
+  RCLCPP_INFO(nh->get_logger(), "New goal [%f, %f, %f]", g_goal->x, g_goal->y, g_goal->theta);
 }
 
-void commandTurtle(ros::Publisher twist_pub, float linear, float angular)
+void commandTurtle(rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub, float linear, float angular)
 {
-  geometry_msgs::Twist twist;
-  twist.linear.x = linear;
-  twist.angular.z = angular;
-  twist_pub.publish(twist);
+  auto twist = std::make_shared<geometry_msgs::msg::Twist>();
+  twist->linear.x = linear;
+  twist->angular.z = angular;
+  twist_pub->publish(*twist);
 }
 
-void stopForward(ros::Publisher twist_pub)
+void stopForward(rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub)
 {
   if (hasStopped())
   {
-    ROS_INFO("Reached goal");
+    RCLCPP_INFO(nh->get_logger(), "Reached goal");
     g_state = TURN;
-    g_goal.x = g_pose->x;
-    g_goal.y = g_pose->y;
-    g_goal.theta = fmod(g_pose->theta + PI/2.0, 2*PI);
+    g_goal->x = g_pose->x;
+    g_goal->y = g_pose->y;
+    g_goal->theta = fmod(g_pose->theta + PI/2.0, 2*PI);
     // wrap g_goal.theta to [-pi, pi)
-    if (g_goal.theta >= PI) g_goal.theta -= 2 * PI;
+    if (g_goal->theta >= PI) g_goal->theta -= 2 * PI;
     printGoal();
   }
   else
@@ -68,15 +72,15 @@ void stopForward(ros::Publisher twist_pub)
   }
 }
 
-void stopTurn(ros::Publisher twist_pub)
+void stopTurn(rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub)
 {
   if (hasStopped())
   {
-    ROS_INFO("Reached goal");
+    RCLCPP_INFO(nh->get_logger(), "Reached goal");
     g_state = FORWARD;
-    g_goal.x = cos(g_pose->theta) * 2 + g_pose->x;
-    g_goal.y = sin(g_pose->theta) * 2 + g_pose->y;
-    g_goal.theta = g_pose->theta;
+    g_goal->x = std::cos(g_pose->theta) * 2 + g_pose->x;
+    g_goal->y = std::sin(g_pose->theta) * 2 + g_pose->y;
+    g_goal->theta = g_pose->theta;
     printGoal();
   }
   else
@@ -86,7 +90,7 @@ void stopTurn(ros::Publisher twist_pub)
 }
 
 
-void forward(ros::Publisher twist_pub)
+void forward(rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub)
 {
   if (hasReachedGoal())
   {
@@ -99,7 +103,7 @@ void forward(ros::Publisher twist_pub)
   }
 }
 
-void turn(ros::Publisher twist_pub)
+void turn(rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub)
 {
   if (hasReachedGoal())
   {
@@ -112,7 +116,7 @@ void turn(ros::Publisher twist_pub)
   }
 }
 
-void timerCallback(const ros::TimerEvent&, ros::Publisher twist_pub)
+void timerCallback(rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub)
 {
   if (!g_pose)
   {
@@ -123,9 +127,9 @@ void timerCallback(const ros::TimerEvent&, ros::Publisher twist_pub)
   {
     g_first_goal_set = true;
     g_state = FORWARD;
-    g_goal.x = cos(g_pose->theta) * 2 + g_pose->x;
-    g_goal.y = sin(g_pose->theta) * 2 + g_pose->y;
-    g_goal.theta = g_pose->theta;
+    g_goal->x = std::cos(g_pose->theta) * 2 + g_pose->x;
+    g_goal->y = std::sin(g_pose->theta) * 2 + g_pose->y;
+    g_goal->theta = g_pose->theta;
     printGoal();
   }
 
@@ -149,15 +153,15 @@ void timerCallback(const ros::TimerEvent&, ros::Publisher twist_pub)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "draw_square");
-  ros::NodeHandle nh;
-  ros::Subscriber pose_sub = nh.subscribe("turtle1/pose", 1, poseCallback);
-  ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1);
-  ros::ServiceClient reset = nh.serviceClient<std_srvs::Empty>("reset");
-  ros::Timer timer = nh.createTimer(ros::Duration(0.016), boost::bind(timerCallback, _1, twist_pub));
+  rclcpp::init(argc, argv);
+  nh = rclcpp::Node::make_shared("draw_square");
+  auto pose_sub = nh->create_subscription<turtlesim::msg::Pose>("turtle1/pose", &poseCallback, 1);
+  auto twist_pub = nh->create_publisher<geometry_msgs::msg::Twist>("turtle1/cmd_vel");
+  auto reset = nh->create_client<std_srvs::srv::Empty>("reset");
+  auto timer = nh->create_wall_timer(0.016s, [twist_pub]() { timerCallback(twist_pub); }); //std::bind(&timerCallback, twist_pub));
 
-  std_srvs::Empty empty;
-  reset.call(empty);
+  auto empty = std::make_shared<std_srvs::srv::Empty::Request>();
+  reset->async_send_request(empty);
 
-  ros::spin();
+  rclcpp::spin(nh);
 }

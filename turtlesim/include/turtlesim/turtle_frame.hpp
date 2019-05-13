@@ -36,14 +36,14 @@
 
 // This prevents a MOC error with versions of boost >= 1.48
 #ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
-# include <ros/ros.h>
+# include <rclcpp/rclcpp.hpp>
 
-# include <std_srvs/Empty.h>
-# include <turtlesim/Spawn.h>
-# include <turtlesim/Kill.h>
+# include <std_srvs/srv/empty.hpp>
+# include <turtlesim/srv/spawn.hpp>
+# include <turtlesim/srv/kill.hpp>
 # include <map>
 
-# include "turtle.h"
+# include "turtle.hpp"
 #endif
 
 namespace turtlesim
@@ -53,7 +53,7 @@ class TurtleFrame : public QFrame
 {
   Q_OBJECT
 public:
-  TurtleFrame(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  TurtleFrame(rclcpp::Node::SharedPtr nh, QWidget* parent = 0, Qt::WindowFlags f = 0);
   ~TurtleFrame();
 
   std::string spawnTurtle(const std::string& name, float x, float y, float angle);
@@ -70,24 +70,32 @@ private:
   void clear();
   bool hasTurtle(const std::string& name);
 
-  bool clearCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
-  bool resetCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
-  bool spawnCallback(turtlesim::Spawn::Request&, turtlesim::Spawn::Response&);
-  bool killCallback(turtlesim::Kill::Request&, turtlesim::Kill::Response&);
+  bool clearCallback(
+          const std::shared_ptr<std_srvs::srv::Empty::Request>,
+          const std::shared_ptr<std_srvs::srv::Empty::Response>);
+  bool resetCallback(
+          const std::shared_ptr<std_srvs::srv::Empty::Request>,
+          const std::shared_ptr<std_srvs::srv::Empty::Response>);
+  bool spawnCallback(
+          const std::shared_ptr<turtlesim::srv::Spawn::Request>,
+          const std::shared_ptr<turtlesim::srv::Spawn::Response>);
+  bool killCallback(
+          const std::shared_ptr<turtlesim::srv::Kill::Request>,
+          const std::shared_ptr<turtlesim::srv::Kill::Response>);
 
-  ros::NodeHandle nh_;
+  std::shared_ptr<rclcpp::Node> nh_;
   QTimer* update_timer_;
   QImage path_image_;
   QPainter path_painter_;
 
   uint64_t frame_count_;
 
-  ros::WallTime last_turtle_update_;
+  builtin_interfaces::msg::Time last_turtle_update_;
 
-  ros::ServiceServer clear_srv_;
-  ros::ServiceServer reset_srv_;
-  ros::ServiceServer spawn_srv_;
-  ros::ServiceServer kill_srv_;
+  std::shared_ptr<rclcpp::Service<std_srvs::srv::Empty>> clear_srv_;
+  std::shared_ptr<rclcpp::Service<std_srvs::srv::Empty>> reset_srv_;
+  std::shared_ptr<rclcpp::Service<turtlesim::srv::Spawn>> spawn_srv_;
+  std::shared_ptr<rclcpp::Service<turtlesim::srv::Kill>> kill_srv_;
 
   typedef std::map<std::string, TurtlePtr> M_Turtle;
   M_Turtle turtles_;
