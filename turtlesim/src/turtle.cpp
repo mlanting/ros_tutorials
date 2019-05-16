@@ -56,7 +56,7 @@ Turtle::Turtle(const std::shared_ptr<rclcpp::Node> nh, const QImage& turtle_imag
 {
   pen_.setWidth(3);
 
-  velocity_sub_ = nh_->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&Turtle::velocityCallback, this, _1));
+  velocity_sub_ = nh_->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", 1, std::bind(&Turtle::velocityCallback, this, _1));
   pose_pub_ = nh_->create_publisher<turtlesim::msg::Pose>("pose", 1);
   color_pub_ = nh_->create_publisher<turtlesim::msg::Color>("color_sensor", 1);
   set_pen_srv_ = nh_->create_service<turtlesim::srv::SetPen>("set_pen", std::bind(&Turtle::setPenCallback, this, _1, _2));

@@ -155,8 +155,8 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   nh = rclcpp::Node::make_shared("draw_square");
-  auto pose_sub = nh->create_subscription<turtlesim::msg::Pose>("turtle1/pose", &poseCallback, 1);
-  auto twist_pub = nh->create_publisher<geometry_msgs::msg::Twist>("turtle1/cmd_vel");
+  auto pose_sub = nh->create_subscription<turtlesim::msg::Pose>("turtle1/pose", 1, &poseCallback);
+  auto twist_pub = nh->create_publisher<geometry_msgs::msg::Twist>("turtle1/cmd_vel", 1);
   auto reset = nh->create_client<std_srvs::srv::Empty>("reset");
   auto timer = nh->create_wall_timer(0.016s, [twist_pub]() { timerCallback(twist_pub); }); //std::bind(&timerCallback, twist_pub));
 

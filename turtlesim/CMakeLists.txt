@@ -4,18 +4,15 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rmw_implementation REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
-find_package(roscpp_serialization REQUIRED)
-find_package(rostime REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
-
+find_package(geometry_msgs REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread)
+
 
 include_directories(include
                     ${rclcpp_INCLUDE_DIRS}
@@ -25,7 +22,6 @@ include_directories(include
                     ${std_srvs_INCLUDE_DIRS}
                     ${geometry_msgs_INCLUDE_DIRS}
                     ${Qt5Widgets_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
                     )
 
 set(msg_files
@@ -67,7 +63,6 @@ target_link_libraries(turtlesim_node Qt5::Widgets
                                      ${std_msgs_LIBRARIES}
                                      ${std_srvs_LIBRARIES}
                                      ${geometry_msgs_LIBRARIES}
-                                     ${Boost_LIBRARIES}
                                      )
 rosidl_target_interfaces(turtlesim_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
@@ -79,7 +74,6 @@ target_link_libraries(turtle_teleop_key ${rclcpp_LIBRARIES}
                                         ${std_msgs_LIBRARIES}
                                         ${std_srvs_LIBRARIES}
                                         ${geometry_msgs_LIBRARIES}
-                                        ${Boost_LIBRARIES}
                                         )
 rosidl_target_interfaces(turtle_teleop_key ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
@@ -91,7 +85,6 @@ target_link_libraries(draw_square ${rclcpp_LIBRARIES}
                                   ${std_msgs_LIBRARIES}
                                   ${std_srvs_LIBRARIES}
                                   ${geometry_msgs_LIBRARIES}
-                                  ${Boost_LIBRARIES}
                                   )
 rosidl_target_interfaces(draw_square ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
@@ -103,7 +96,6 @@ target_link_libraries(mimic ${rclcpp_LIBRARIES}
                             ${std_msgs_LIBRARIES}
                             ${std_srvs_LIBRARIES}
                             ${geometry_msgs_LIBRARIES}
-                            ${Boost_LIBRARIES}
                             )
 rosidl_target_interfaces(mimic ${PROJECT_NAME} "rosidl_typesupport_cpp")
 

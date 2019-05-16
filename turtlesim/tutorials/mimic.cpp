@@ -23,7 +23,7 @@ Mimic::Mimic()
   auto input_node = node->create_sub_node("input");
   auto output_node = node->create_sub_node("output");
   twist_pub_ = output_node->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 1);
-  pose_sub_ = input_node->create_subscription<turtlesim::msg::Pose>("pose", std::bind(&Mimic::poseCallback, this, _1));
+  pose_sub_ = input_node->create_subscription<turtlesim::msg::Pose>("pose", 1, std::bind(&Mimic::poseCallback, this, _1));
 }
 
 void Mimic::poseCallback(const turtlesim::msg::Pose::ConstSharedPtr pose)
