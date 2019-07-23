@@ -27,6 +27,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef TURTLESIM__TURTLE_FRAME_HPP_
+#define TURTLESIM__TURTLE_FRAME_HPP_
+
+#include <rclcpp/rclcpp.hpp>
+
+#include "turtle.hpp"
+#include <std_srvs/srv/empty.hpp>
+#include <turtlesim/srv/spawn.hpp>
+#include <turtlesim/srv/kill.hpp>
+
 #include <QFrame>
 #include <QImage>
 #include <QPainter>
@@ -34,17 +44,9 @@
 #include <QTimer>
 #include <QVector>
 
-// This prevents a MOC error with versions of boost >= 1.48
-#ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
-# include <rclcpp/rclcpp.hpp>
-
-# include <std_srvs/srv/empty.hpp>
-# include <turtlesim/srv/spawn.hpp>
-# include <turtlesim/srv/kill.hpp>
-# include <map>
-
-# include "turtle.hpp"
-#endif
+#include <string>
+#include <memory>
+#include <map>
 
 namespace turtlesim
 {
@@ -90,7 +92,7 @@ private:
 
   uint64_t frame_count_;
 
-  builtin_interfaces::msg::Time last_turtle_update_;
+  rclcpp::Time last_turtle_update_;
 
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Empty>> clear_srv_;
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Empty>> reset_srv_;
@@ -108,4 +110,6 @@ private:
   float height_in_meters_;
 };
 
-}
+}  // namespace turtlesim
+
+#endif  // TURTLESIM__TURTLE_FRAME_HPP_

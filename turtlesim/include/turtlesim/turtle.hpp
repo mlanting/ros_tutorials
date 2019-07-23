@@ -25,11 +25,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TURTLESIM_TURTLE_H
-#define TURTLESIM_TURTLE_H
+#ifndef TURTLESIM__TURTLE_HPP_
+#define TURTLESIM__TURTLE_HPP_
 
-// This prevents a MOC error with versions of boost >= 1.48
-#ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
 # include <rclcpp/rclcpp.hpp>
 
 # include <turtlesim/msg/pose.hpp>
@@ -38,12 +36,14 @@
 # include <turtlesim/srv/set_pen.hpp>
 # include <turtlesim/srv/teleport_relative.hpp>
 # include <turtlesim/srv/teleport_absolute.hpp>
-#endif
 
 #include <QImage>
 #include <QPainter>
 #include <QPen>
 #include <QPointF>
+
+# include <memory>
+# include <vector>
 
 #define PI 3.14159265
 
@@ -114,6 +114,6 @@ private:
 };
 typedef std::shared_ptr<Turtle> TurtlePtr;
 
-}
+}  // namespace turtlesim
 
-#endif
+#endif  // TURTLESIM__TURTLE_HPP_

@@ -93,7 +93,7 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr nh, QWidget* parent, Qt::Window
     turtles.append("melodic.png");
 
     QString images_path = (ament_index_cpp::get_package_share_directory("turtlesim") + "/images/").c_str();
-    RCLCPP_INFO(nh_->get_logger(), "Image path: %s", images_path.toStdString().data());
+
     for (int i = 0; i < turtles.size(); ++i)
     {
         QImage img;
@@ -244,7 +244,7 @@ void TurtleFrame::paintEvent(QPaintEvent*)
 
 void TurtleFrame::updateTurtles()
 {
-    if (last_turtle_update_.sec == 0 && last_turtle_update_.nanosec == 0)
+    if (last_turtle_update_.nanoseconds() == 0) //last_turtle_update_.seconds == 0 && last_turtle_update_.nanoseconds == 0)
     {
         last_turtle_update_ = nh_->now();
         return;

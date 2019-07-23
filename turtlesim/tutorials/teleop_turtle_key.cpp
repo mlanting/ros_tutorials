@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2009, Willow Garage, Inc.
+ * All rights reserved.  *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Willow Garage, Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
@@ -5,6 +32,7 @@
 #include <termios.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <memory>
 
 #define KEYCODE_R 0x43
 #define KEYCODE_L 0x44
@@ -19,12 +47,9 @@ public:
   void keyLoop();
 
 private:
-
-
   std::shared_ptr<rclcpp::Node> nh_;
   double linear_, angular_, l_scale_, a_scale_;
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub_;
-
 };
 
 TeleopTurtle::TeleopTurtle():
@@ -63,7 +88,7 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   TeleopTurtle teleop_turtle;
 
-  signal(SIGINT,quit);
+  signal(SIGINT, quit);
 
   teleop_turtle.keyLoop();
 
@@ -74,14 +99,14 @@ int main(int argc, char** argv)
 void TeleopTurtle::keyLoop()
 {
   char c;
-  bool dirty=false;
+  bool dirty = false;
 
 
   // get the console in raw mode
   tcgetattr(kfd, &cooked);
   memcpy(&raw, &cooked, sizeof(struct termios));
   // disable buffered io and echo mode
-  raw.c_lflag &=~ (ICANON | ECHO);
+  raw.c_lflag &= ~(ICANON | ECHO);
   // Setting a new line, then end of file
   raw.c_cc[VEOL] = 1;
   raw.c_cc[VEOF] = 2;
@@ -101,7 +126,7 @@ void TeleopTurtle::keyLoop()
       exit(-1);
     }
 
-    linear_=angular_=0;
+    linear_ = angular_ = 0;
     RCLCPP_DEBUG(nh_->get_logger(), "value: 0x%02X\n", c);
 
     switch(c)
@@ -135,7 +160,7 @@ void TeleopTurtle::keyLoop()
     if(dirty == true)
     {
       twist_pub_->publish(*twist);
-      dirty=false;
+      dirty = false;
     }
   }
 
